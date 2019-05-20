@@ -100,7 +100,7 @@ void playback(unsigned int rate, int channels, double seconds, int fd){
         if ((pcm = read(fd, buff, buff_size)) == 0) {
             return;
         }
-
+        // I believe this is where the audio is being played
         if ((pcm = snd_pcm_writei(pcm_handle, buff, frames)) == -EPIPE) {
             printf("XRUN.\n");
             snd_pcm_prepare(pcm_handle);
