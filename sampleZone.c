@@ -89,6 +89,7 @@ void playPattern(WINDOW *win, audioFile *files, int tempo, int numFiles) {
             printMeasureMarkers((x - WINDOW_OFFSET - 1) / 4, width);
             wrefresh(win);
             if (wgetch(win) == ' ') {
+                printf("Bada bet");
                 return;
             }
             // Calculates seconds per beat

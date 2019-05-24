@@ -55,7 +55,6 @@ void printSamples(audioFile *files, char *fileNames[], int highlightIndex, int n
     }
 }
 
-//You're probably going to need an index
 void sampleError(char* errorMessage, int windowHeight) {
     move(windowHeight - 1, 45);
     clrtoeol();

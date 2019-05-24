@@ -1,6 +1,8 @@
 #ifndef PLAYBACK_H
 #define PLAYBACK_H
 
+void signalQuit();
+
 // Audio playback function
 // @param rate: int sample rate in Hz
 // @param channels: int audio channels

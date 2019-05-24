@@ -17,12 +17,19 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <alloca.h>
+#include <pthread.h>
 #include "playback.h"
 
 #include <ncurses.h>
 #include "ncursesUtils.h"
 
 #define PCM_DEVICE "default"
+
+
+static void pausePlayback(void *pcm_handle){
+    snd_pcm_pause((snd_pcm_t *)pcm_handle, 1);
+}
+
 
 void playback(unsigned int rate, int channels, double seconds, int fd){
     snd_pcm_t *pcm_handle;
@@ -80,7 +87,7 @@ void playback(unsigned int rate, int channels, double seconds, int fd){
         printf("(mono)\n");
     else if (tmp == 2)
         printf("(stereo)\n");
-    */
+void    */
 
     snd_pcm_hw_params_get_rate(params, &tmp, 0);
     //printf("rate: %d bps\n", tmp);
@@ -95,7 +102,20 @@ void playback(unsigned int rate, int channels, double seconds, int fd){
 
     snd_pcm_hw_params_get_period_time(params, &tmp, NULL);
 
+    pthread_cleanup_push(pausePlayback, pcm_handle);
+
     for (loops = (seconds * 1000000) / tmp; loops > 0; loops--) {
+        /*
+        if (){
+            printf("Schlormhfph");
+            snd_pcm_pause(pcm_handle,1);
+            break;
+        }
+        */
+        // And then if you get to the point of pausing playback,
+        // do that again but with 0 to resume.
+
+
 
         if ((pcm = read(fd, buff, buff_size)) == 0) {
             return;
@@ -113,6 +133,7 @@ void playback(unsigned int rate, int channels, double seconds, int fd){
     snd_pcm_drain(pcm_handle);
     snd_pcm_close(pcm_handle);
     free(buff);
+    pthread_cleanup_pop(0);
 }
 
 /* Sample main function for testing playback
