@@ -22,6 +22,9 @@
 static int height = DEFAULT_WINDOW_HEIGHT;
 static int width = DEFAULT_WINDOW_WIDTH;
 
+int sampleCounter = 0;
+pthread_t sampleThreads[100];
+
 double wavLength(u_int32_t wavSize, u_int32_t byteRate) {
     return (double) wavSize / byteRate;
 }
@@ -89,7 +92,10 @@ void playPattern(WINDOW *win, audioFile *files, int tempo, int numFiles) {
             printMeasureMarkers((x - WINDOW_OFFSET - 1) / 4, width);
             wrefresh(win);
             if (wgetch(win) == ' ') {
-                printf("Bada bet");
+                for (int i = 0; i < sampleCounter+1; i++){
+                    pthread_join(sampleThreads[i], NULL);
+                }
+                sampleCounter = 0;
                 return;
             }
             // Calculates seconds per beat
@@ -110,6 +116,8 @@ void playPattern(WINDOW *win, audioFile *files, int tempo, int numFiles) {
                 }
 
                 pthread_create(&thread, NULL, playFile, &files[fileToPlay]);
+                sampleThreads[sampleCounter] = thread;
+                sampleCounter += 1;
             }
         }
     }
