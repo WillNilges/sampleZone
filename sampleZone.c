@@ -93,7 +93,9 @@ void playPattern(WINDOW *win, audioFile *files, int tempo, int numFiles) {
             wrefresh(win);
             if (wgetch(win) == ' ') {
                 for (int i = 0; i < sampleCounter+1; i++){
-                    pthread_join(sampleThreads[i], NULL);
+                    if (sampleThreads[i]){
+                        pthread_cancel(sampleThreads[i]);
+                    }
                 }
                 sampleCounter = 0;
                 return;
