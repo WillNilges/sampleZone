@@ -1,6 +1,8 @@
 #ifndef PLAYBACK_H
 #define PLAYBACK_H
 
+#include <alsa/asoundlib.h>
+
 void signalQuit();
 
 // Audio playback function
@@ -8,7 +10,7 @@ void signalQuit();
 // @param channels: int audio channels
 // @param seconds: int how much of audio file to play
 // @param fd: int file descriptor
-void playback(unsigned int rate, int channels, double seconds, int fd);
+void playback(snd_pcm_t *pcm_handle, int pcm, unsigned int rate, int channels, double seconds, int fd);
 
 // WAV file header spec as per Msft standard
 typedef struct wavHeader_t {
