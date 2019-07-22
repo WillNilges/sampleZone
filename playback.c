@@ -25,11 +25,14 @@
 
 #define PCM_DEVICE "default"
 
-/*
+
 static void pausePlayback(void *pcm_handle){
-    snd_pcm_pause((snd_pcm_t *)pcm_handle, 1);
+    snd_pcm_drop((snd_pcm_t *)pcm_handle);
+    snd_pcm_close((snd_pcm_t *)pcm_handle);
+//    free((char *)buff);
+    return;
 }
-*/
+
 
 void playback(snd_pcm_t *pcm_handle, int pcm, unsigned int rate, int channels, double seconds, int fd){
     //snd_pcm_t *pcm_handle;
@@ -96,7 +99,7 @@ void    */
 
     snd_pcm_hw_params_get_period_time(params, &tmp, NULL);
 
-    //pthread_cleanup_push(pausePlayback, pcm_handle);
+    pthread_cleanup_push(pausePlayback, pcm_handle);
 
     for (loops = (seconds * 1000000) / tmp; loops > 0; loops--) {
         if ((pcm = read(fd, buff, buff_size)) == 0) {
@@ -115,7 +118,7 @@ void    */
     snd_pcm_drain(pcm_handle);
     snd_pcm_close(pcm_handle);
     free(buff);
-    //pthread_cleanup_pop(0);
+    pthread_cleanup_pop(0);
 }
 
 /* Sample main function for testing playback

@@ -94,6 +94,17 @@ audioFile *initFiles(int numFiles, char *fileNames[]) {
     return files;
 }
 
+void stopPattern(){
+for (int i = 0; i < sampleCounter+1; i++){
+    if(pcm_handles[i]){
+        snd_pcm_drop(pcm_handles[i]);
+        snd_pcm_drain(pcm_handles[i]);
+    }
+    if (sampleThreads[i]) pthread_cancel(sampleThreads[i]);
+}
+sampleCounter = 0;
+}
+
 void playPattern(WINDOW *win, audioFile *files, int tempo, int numFiles) {
     // Clear sampleErrors
     clearErrors(DEFAULT_WINDOW_HEIGHT);
@@ -104,17 +115,6 @@ void playPattern(WINDOW *win, audioFile *files, int tempo, int numFiles) {
         for (int x = WINDOW_OFFSET; x < width + WINDOW_OFFSET - 1; x++) {
             printMeasureMarkers((x - WINDOW_OFFSET - 1) / 4, width);
             wrefresh(win);
-            if (wgetch(win) == ' ') {
-                for (int i = 0; i < sampleCounter+1; i++){
-                    if (sampleThreads[i]){
-                        //pthread_cancel(sampleThreads[i]);
-                        if(pcm_handles[i])
-                            snd_pcm_drop(pcm_handles[i]);
-                    }
-                }
-                sampleCounter = 0;
-                return;
-            }
             // Calculates seconds per beat
             double spb = 60 / (1.0 * tempo);
             usleep(spb * 1000000);
@@ -135,6 +135,10 @@ void playPattern(WINDOW *win, audioFile *files, int tempo, int numFiles) {
                 pthread_create(&thread, NULL, playFile, &files[fileToPlay]);
                 sampleThreads[sampleCounter] = thread;
                 sampleCounter += 1;
+            }
+            if (wgetch(win) == ' ') {
+                stopPattern();
+                return;
             }
         }
     }
@@ -310,6 +314,7 @@ int main(int argc, char *argv[]) {
         // Refresh grid after each cursor move or screen print (important)
         wrefresh(win);
     }
+    stopPattern();
     delwin(win);
     endwin();
     free(files);
