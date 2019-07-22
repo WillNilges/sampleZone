@@ -26,8 +26,8 @@ static int width = DEFAULT_WINDOW_WIDTH;
 int sampleCounter = 0;
 pthread_t sampleThreads[100];
 
-snd_pcm_t *pcm_handle;
-int pcm;
+snd_pcm_t *pcm_handles[100];
+int pcms[100];
 
 double wavLength(u_int32_t wavSize, u_int32_t byteRate) {
     return (double) wavSize / byteRate;
@@ -47,10 +47,19 @@ void *playFile(void *file) {
     double length = wavLength(header->subChunk2Size, header->byteRate);
     // Debug wav header
     // printf("%u %u %f\n", header->subChunk2Size, header->byteRate, length);
+
+    snd_pcm_t *pcm_handle;
+    int pcm;
+    /* Open the PCM device in playback mode */
+    if ((pcm = snd_pcm_open(&pcm_handle, PCM_DEVICE, SND_PCM_STREAM_PLAYBACK, 0)) < 0)
+        printf("ERROR: Can't open \"%s\" PCM device. %s\n", PCM_DEVICE, snd_strerror(pcm));
+    pcm_handles[sampleCounter] = pcm_handle;
+    pcms[sampleCounter] = pcm;
+
     playback(pcm_handle, pcm, header->sampleRate + (((audioFile *) file)->pitchAdjust * 500), header->numChannels, length, fd);
-    pthread_exit(NULL);
     close(fd);
     free(header);
+    pthread_exit(NULL);
 }
 
 bool checkSymbol(char input, char *symbols, int numSymbols) {
@@ -86,11 +95,6 @@ audioFile *initFiles(int numFiles, char *fileNames[]) {
 }
 
 void playPattern(WINDOW *win, audioFile *files, int tempo, int numFiles) {
-    /* Open the PCM device in playback mode */
-    if ((pcm = snd_pcm_open(&pcm_handle, PCM_DEVICE, SND_PCM_STREAM_PLAYBACK, 0)) < 0)
-        printf("ERROR: Can't open \"%s\" PCM device. %s\n", PCM_DEVICE, snd_strerror(pcm));
-
-
     // Clear sampleErrors
     clearErrors(DEFAULT_WINDOW_HEIGHT);
     // Make wgetch a non-blocking call
@@ -104,7 +108,8 @@ void playPattern(WINDOW *win, audioFile *files, int tempo, int numFiles) {
                 for (int i = 0; i < sampleCounter+1; i++){
                     if (sampleThreads[i]){
                         //pthread_cancel(sampleThreads[i]);
-                        snd_pcm_drop(pcm_handle);
+                        if(pcm_handles[sampleCounter])
+                            snd_pcm_drop(pcm_handles[sampleCounter]);
                     }
                 }
                 sampleCounter = 0;
