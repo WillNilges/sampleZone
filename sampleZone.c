@@ -53,8 +53,8 @@ void *playFile(void *file) {
     /* Open the PCM device in playback mode */
     if ((pcm = snd_pcm_open(&pcm_handle, PCM_DEVICE, SND_PCM_STREAM_PLAYBACK, 0)) < 0)
         printf("ERROR: Can't open \"%s\" PCM device. %s\n", PCM_DEVICE, snd_strerror(pcm));
-    pcm_handles[sampleCounter] = pcm_handle;
-    pcms[sampleCounter] = pcm;
+    pcm_handles[sampleCounter-1] = pcm_handle;
+    pcms[sampleCounter-1] = pcm;
 
     playback(pcm_handle, pcm, header->sampleRate + (((audioFile *) file)->pitchAdjust * 500), header->numChannels, length, fd);
     close(fd);
@@ -108,8 +108,8 @@ void playPattern(WINDOW *win, audioFile *files, int tempo, int numFiles) {
                 for (int i = 0; i < sampleCounter+1; i++){
                     if (sampleThreads[i]){
                         //pthread_cancel(sampleThreads[i]);
-                        if(pcm_handles[sampleCounter])
-                            snd_pcm_drop(pcm_handles[sampleCounter]);
+                        if(pcm_handles[i])
+                            snd_pcm_drop(pcm_handles[i]);
                     }
                 }
                 sampleCounter = 0;
